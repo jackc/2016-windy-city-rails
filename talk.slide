@@ -217,6 +217,10 @@ Probably bad situations:
 - Complexity is the enemy of correctness
 - If your system can fit on a single server for the foreseeable future, do so.
 
+Slides:
+
+.link https://github.com/jackc/2016-windy-city-rails
+
 : Take advantage of the cloud, don't let it take advantage of you
 
 
