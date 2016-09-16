@@ -1,0 +1,223 @@
+When Web Scale Doesn't Make Sense
+
+Jack Christensen
+Senior Developer, Hashrocket
+http://www.jackchristensen.com
+@j3c10
+
+* What does web scale mean?
+
+- Number of users?
+
+: Facebook 1.71B has monthly active users.
+
+- Requests per second?
+
+: Google search estimated at least 63K reqs/sec.
+
+- Big data?
+
+: Google estimated to be in the exabytes.
+
+* Other measures of scale?
+
+- How many things does the system do?
+- Number of applications
+- Lines of code
+- Number of languages / frameworks / libraries
+- Number of developers / teams
+
+: These are areas where non-web-scale systems may exceed the scale of web-scale systems.
+
+* Web scale for purposes of this talk
+
+- When the system obviously cannot run on a single node or traditional N-tier architecture
+- Servers are cattle not pets
+- Service is the unit of abstraction
+
+: N web servers in front of a single RDBMS would be traditional not web scale.
+
+* Where this talk applies
+
+- Non-web scale domains
+- Small development teams
+
+Some of the following suggestions are wrong if these preconditions are not true.
+
+* Don't make me think
+
+- Our minds are very small compared to the scope of the problems we deal with.
+- Anything that reduces the number of things we need to think about at once is probably a good idea.
+- Kinds of things are more expensive than things.
+
+* Things to minimize
+
+- Data stores
+- Frameworks
+- Languages
+- Libraries
+
+: These are ordered in priority order. An example of minimizing libraries is RSpec vs. minitest. Better to have one than both.
+
+* What about personal growth?
+
+- Don't do resume driven development
+
+A good employer should provide learning and experimental opportunities outside of the core production systems.
+
+- Experimental projects
+- Internal tools
+- Open source time
+
+: Mention microservices
+
+* Abstractions
+
+- The right abstraction minimizes the number things you have to think about and understand
+
+: Good fairly, solid abstractions - file system, SQL, S3
+
+- A leaky abstraction means you must understand the underlying layer as well as the abstraction to totally understand what is going on.
+- Most abstractions are leaky. Consider how much those leaks impact you. (e.g. In most cases there is no need reach beneath or even understand much below the file system. But to use ActiveRecord effectively you still need to know SQL)
+
+: The collection / iterator concept is another sometimes leaky, but incredibly useful abstraction.
+
+: An extremely leaky abstraction is RPC.
+
+- Carefully weigh the value provided by the abstraction against the cost
+- Too little is usually better than too much
+
+* Store related code and projects in one repository
+
+Example: Rails application, JS frontend, iOS client, Android client, background workers, configuration, misc. scripts that all work together.
+
+- If one person has to commit to multiple repos to implement a feature, it very likely should be a single repo
+- If multiple people have to commit to multiple repos to implement a feature, it probably should be a single repo
+- At its extreme a mono-repo may be used for an entire organization
+
+* Who do we learn from?
+
+- Google
+- Facebook
+- Amazon
+- Twitter
+- Netflix
+- "Best practices"
+
+* What have we learned?
+
+- Distributed, horizontally scaled systems
+- Horizontal scaling increases capacity by additional servers
+- Share nothing architectures
+- Distributed systems that gain reliability through redundant systems
+
+* We are not Google
+
+- Their production environments are far larger than average.
+- Their development staff is far larger than average.
+- Their solutions can be our problems.
+
+* The Centralized, Vertical Scaling Alternative
+
+- Increase capacity by more powerful server(s)
+- Increase capacity by code optimization
+- Simpler but has a lower, harder performance ceiling
+
+* Smaller than web scale, but bigger than you think
+
+- Dan Kegel's original post about the C10K problem was in 1999.
+.link http://www.kegel.com/c10k.html
+- The Pentium 3 was the top of the line Intel CPU.
+
+* Hardware has drastically improved since then.
+
+- VM hosting: 20+ vcores, 100+ GB RAM < $1000/month
+- VM hosting: 128 vcores, 1,952 GB RAM < $3000/month
+- Purchase and colo: 96 cores, 6 TB RAM  < $100000 + colo
+
+Shouldn't we be more likely to use vertical scaling than 15+ years ago?
+
+- Most applications are not social media, messaging, or big data.
+- Server performance has increased more than average typical application requirements
+
+* Minimize types and number of data stores
+
+- The data store is typically the hardest component to scale horizontally
+- Distributed, shared state is hard
+- All distributed solutions have serious costs
+
+Specialized data stores can have better performance and more features. But it comes at a cost. Each type of data store is adds a tremendous amount of complexity to the development process and production environment.
+
+- Atomicity / Consistency / Referential integrity
+- Deployment
+- Backups
+- Developer setup
+- Test setup
+
+: If it's too hard, you're doing it wrong.
+
+* PostgreSQL do a lot
+
+- Reads can scale horizontally with replicas
+- Writes are more difficult but can easily get 10,000+/sec (on good HW)
+- Consider sharding for another scaling approach
+- Low volume messaging / Pubsub - LISTEN / NOTIFY (low 1000's per second)
+- Full text search - built-in full text search
+- Document storage - JSON / JSONB / XML
+- File storage - bytea (rarely, and for low volume)
+
+* Microservices / SOA - The Good
+
+- Less communication overhead between developers working on different portions of system
+- Scale features / portions of system independently
+- Relax coupling on language / framework / library version for a system
+- Service could be implemented in faster language than main system
+- Potentially faster iteration due to reduced dependencies
+- Service could be made available to 3rd parties
+
+* Microservices / SOA - The Bad
+
+- Many dependencies are hidden not removed
+
+: Complexity will be preserved. It's only moved around.
+
+- Added single point(s) of failure
+- Testing becomes much more difficult
+- More complicated deployment
+- Loss of referential integrity if services have different data stores
+- Potential latency increase
+- Monitoring difficulties
+- New security architecture
+
+: Only thing worse than a single point of failure is... multiple single points of failure
+: Complexity is the enemy of correctness -- distributed systems are complex
+
+* Microservices / SOA - Recommendations
+
+Potentially good situations:
+
+- A slice of the system has concrete performance needs that a monolith can't handle
+
+: For example, extract an endpoint from Rails and use Go
+
+- A slice of the system is exclusively and independently developed by one person or team
+
+Probably bad situations:
+
+- Small teams where everyone works on everything
+- It feels too big is not a good reason.
+- I want to put microservices on my resume.
+
+* Conclusion
+
+- Minimize the types of things
+- Minimize the number of things
+- Carefully evaluate the costs of adopting web-scale best practices
+- Distributed systems are complex
+- Complexity is the enemy of correctness
+- If your system can fit on a single server for the foreseeable future, do so.
+
+: Take advantage of the cloud, don't let it take advantage of you
+
+
+
